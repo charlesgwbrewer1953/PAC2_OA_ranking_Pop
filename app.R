@@ -297,7 +297,7 @@ if (!is.null(dimensions_val)) {
             dt <- dt[,c(1:5, non_zero_non_na_columns)]
         }
         dt
-    }, options = list(ordering = TRUE, lengthMenu = list(c(-1))))
+    }, options = list(ordering = TRUE, search = list(regex = TRUE, smart = FALSE), lengthMenu = list(c(-1))))
     ###########
 
      # Download handler for result table data
