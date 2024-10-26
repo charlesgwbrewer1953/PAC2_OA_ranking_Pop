@@ -6,7 +6,7 @@
 # Number of OAs added 2.3.5
 # # Revised GCS storage
 # DEV
-version_no <- "4.3.1"
+version_no <- "4.3.2"
 op_status <- "Operational"
 
 library(shiny)
@@ -22,6 +22,11 @@ library(googleCloudStorageR)
 
 # Define UI
 ui <- fluidPage(
+
+    # Import Roboto style
+    tags$head(
+        includeCSS("www/styles.css")
+    ),
     titlePanel("Factor weighting and OA ranking"),
     tags$div(
         style = "font-size: 12px; font-style: italic;",
@@ -297,7 +302,11 @@ if (!is.null(dimensions_val)) {
             dt <- dt[,c(1:5, non_zero_non_na_columns)]
         }
         dt
-    }, options = list(ordering = TRUE, search = list(regex = TRUE, smart = FALSE), lengthMenu = list(c(-1))))
+    },  options = list(ordering = TRUE,
+                      filter = 'top',
+                      search = list(regex = TRUE, caseInsensitive = TRUE),
+                      lengthMenu = list(c(-1))
+                      ))
     ###########
 
      # Download handler for result table data
