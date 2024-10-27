@@ -206,7 +206,7 @@ server <- function(input, output, session) {
 if (!is.null(dimensions_val)) {
     # If dimensions_val is not NULL, create the dataframe
     df <- data.frame(
-        Title = dimensions_val[-(1:5)],
+        Title = dimensions_val[-(1:7)],
         Weight = 0,
         Q1 = 0,
         Q2 = 0,
@@ -241,8 +241,8 @@ if (!is.null(dimensions_val)) {
 
         oa_unique_values <- oa_unique()  # Initialize oa_unique_values with oa_unique
 
-        # Loop over columns apart from 1 to 5 (id columns) in oa_unique_values
-        for (col_name in names(oa_unique_values)[-c(1, 5)]) {
+        # Loop over columns apart from 1 to 7 (id columns) in oa_unique_values
+        for (col_name in names(oa_unique_values)[-c(1, 7)]) {
             # Get the corresponding row index in input_df for the column name
             row_index <- match(col_name, input_df$Title)
 
@@ -279,7 +279,7 @@ if (!is.null(dimensions_val)) {
         }
 
         # Iterate over each column in oa_unique_values
-        for (col_name in names(oa_unique_values)[-c(1: 5)]) {
+        for (col_name in names(oa_unique_values)[-c(1: 7)]) {
             # Get the corresponding Weight value from input_df
             weight_value <- input_df[input_df$Title == col_name, "Weight"]
             # Convert it to numeric
@@ -293,7 +293,7 @@ if (!is.null(dimensions_val)) {
         }
         # Add sum of row values
 
-        oa_unique_values$Sum <- rowSums(oa_unique_values[, -(1:5)], na.rm = TRUE)
+        oa_unique_values$Sum <- rowSums(oa_unique_values[, -(1:7)], na.rm = TRUE)
         oa_unique_values <- oa_unique_values %>% arrange(desc(Sum))
         # Assign the result to reactive value
         oa_unique_values_data(oa_unique_values)
@@ -312,13 +312,13 @@ if (!is.null(dimensions_val)) {
     output$oa_unique_values_table <- DT::renderDataTable({
         dt<-  oa_unique_values_data()
         if(input$output_columns == "Show all"){dt <- dt}
-        if(input$output_columns == "Sum only"){dt <- dt[, c(1:5, ncol(dt))]}
+        if(input$output_columns == "Sum only"){dt <- dt[, c(1:7, ncol(dt))]}
         if(input$output_columns == "Non-zero only"){
             numeric_columns <- sapply(dt, is.numeric)
             first_row <- dt[1,numeric_columns]
             non_zero_non_na_columns <- which(!(is.na(first_row) | first_row == 0))
-            non_zero_non_na_columns <- non_zero_non_na_columns + 5 # Compensate for first 5 alpha cols
-            dt <- dt[,c(1:5, non_zero_non_na_columns)]
+            non_zero_non_na_columns <- non_zero_non_na_columns + 7 # Compensate for first 7 alpha (ID) cols
+            dt <- dt[,c(1:7, non_zero_non_na_columns)]
         }
         dt
     },  options = list(ordering = TRUE,
