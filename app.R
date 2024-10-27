@@ -1,4 +1,9 @@
 ##### Factor weighting and OA ranking - V4.3.0 Operational - GCS retrieval
+#
+#
+#  OA RANKING
+#
+#
 # oa_ranking1
 # Becoming generalised
 # oa_ranking2
@@ -6,7 +11,7 @@
 # Number of OAs added 2.3.5
 # # Revised GCS storage
 # DEV
-version_no <- "4.3.2"
+version_no <- "4.5.1"
 op_status <- "Operational"
 
 library(shiny)
@@ -143,8 +148,22 @@ server <- function(input, output, session) {
 
         object <- object[,-1]
 
+        # Check if input has LAD columns
+        has_LAD_columns <- all(c("LAD24CD", "LAD24NM") %in% names(object))
+
+        # Check if LAD24CD and LAD24NM are in the loaded data
+        if (!("LAD24CD" %in% names(object))) object$LAD24CD <- 0
+        if (!("LAD24NM" %in% names(object))) object$LAD24NM <- 0
+
+        # Arrange columns so LAD columns are after `constituencyName`
+        if ("constituencyName" %in% names(object)) {
+            object <- object %>% select(1:which(names(object) == "constituencyName"), LAD24CD, LAD24NM, everything())
+        }
+
+
         dimensions_names <- names(object)
         constituencyName1 <- object[1,2]
+        LADname <- object$LAD24NM[1]
         # Store the data frame in the reactive value
         oa_unique(object)
         dimensions(dimensions_names)
@@ -171,7 +190,7 @@ server <- function(input, output, session) {
     # Use the selected file data in calculations
     observeEvent(input$calculate, {
         oa_unique <- selected_file_data()
-        # Your existing code for calculations goes here...
+
     })
 
     #############################################################
@@ -316,9 +335,8 @@ if (!is.null(dimensions_val)) {
             timestamp <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
             constName <- constituencyName()
             paste0("result_", constName,input$weightingModel, "_" ,timestamp, ".csv")
+
         },
-
-
         content = function(file) {
             write.csv(oa_unique_values_data(), file, row.names = FALSE)
             # Upload the file to Google Cloud Storage
