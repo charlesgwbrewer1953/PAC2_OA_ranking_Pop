@@ -266,7 +266,7 @@ if (!is.null(dimensions_val)) {
 
 
         # Convert table values to numeric
-        numeric_columns <- 6:ncol(oa_unique_values)
+        numeric_columns <- 8:ncol(oa_unique_values)
         oa_unique_values <- oa_unique_values %>%
             mutate_at(vars(numeric_columns), as.numeric)
         # Define a function to convert Weight values to numeric and multiply with column values
