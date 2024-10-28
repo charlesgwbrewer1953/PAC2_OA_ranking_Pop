@@ -11,7 +11,7 @@
 # Number of OAs added 2.3.5
 # # Revised GCS storage
 # DEV
-version_no <- "4.5.9"
+version_no <- "4.5.10"
 op_status <- "Operational"
 
 library(shiny)

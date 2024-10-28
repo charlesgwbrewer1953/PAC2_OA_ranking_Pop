@@ -1,5 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
-body	{
-	font-family: 'Roboto', sans-serif;
-		}
+/* Global styles */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f4f4f4;
+}
+
+/* Headings */
+h1 {
+  color: #2c3e50;
+}
+
+/* DT Table Styles */
+.dataTable th {
+  background-color: #3498db; /* Heading background color */
+  color: white; /* Heading text color */
+  padding: 10px; /* Padding for headings */
+}
+
+.dataTable td {
+  border: 1px solid #ddd; /* Border for cells */
+  padding: 8px; /* Padding for cells */
+}
+
+/* Additional styles as needed */
