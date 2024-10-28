@@ -11,7 +11,7 @@
 # Number of OAs added 2.3.5
 # # Revised GCS storage
 # DEV
-version_no <- "4.5.1"
+version_no <- "4.5.7"
 op_status <- "Operational"
 
 library(shiny)
@@ -314,11 +314,17 @@ if (!is.null(dimensions_val)) {
         if(input$output_columns == "Show all"){dt <- dt}
         if(input$output_columns == "Sum only"){dt <- dt[, c(1:7, ncol(dt))]}
         if(input$output_columns == "Non-zero only"){
+
             numeric_columns <- sapply(dt, is.numeric)
             first_row <- dt[1,numeric_columns]
             non_zero_non_na_columns <- which(!(is.na(first_row) | first_row == 0))
-            non_zero_non_na_columns <- non_zero_non_na_columns + 7 # Compensate for first 7 alpha (ID) cols
-            dt <- dt[,c(1:7, non_zero_non_na_columns)]
+            # Adjust by skipping first 7 columns, then ensure the selected columns are within bounds
+            non_zero_non_na_columns <- non_zero_non_na_columns + 7
+            non_zero_non_na_columns <- non_zero_non_na_columns[non_zero_non_na_columns <= ncol(dt)]
+
+            # Select the relevant columns from dt
+            dt <- dt[, c(1:7, non_zero_non_na_columns)]
+
         }
         dt
     },  options = list(ordering = TRUE,
