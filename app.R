@@ -11,7 +11,7 @@
 # Number of OAs added 2.3.5
 # # Revised GCS storage
 # DEV
-version_no <- "4.5.7"
+version_no <- "4.5.9"
 op_status <- "Operational"
 
 library(shiny)
@@ -32,16 +32,16 @@ ui <- fluidPage(
     tags$head(
         includeCSS("www/styles.css")
     ),
-    titlePanel("Factor weighting and OA ranking"),
+    titlePanel("Factor Weighting and OA Ranking"),
     tags$div(
         style = "font-size: 12px; font-style: italic;",
         HTML("Version: "),
-        textOutput(version_no)
+        textOutput("version_no_output")
     ),
     tags$div(
         style = "font-size: 12px; font-style: italic;",
         HTML("Status: "),
-        textOutput("opStatus_output")
+        textOutput("op_status_output")
     ),
 
     tags$div(
@@ -95,6 +95,14 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output, session) {
 
+    output$version_no_output <- renderText({
+        version_no
+    })
+    output$op_status_output <- renderText({
+        op_status
+    })
+
+
     ########################
     #
     # Define reactive values
@@ -107,6 +115,7 @@ server <- function(input, output, session) {
     oa_unique <- reactiveVal(NULL)
     dimensions <- reactiveVal(NULL)             # Reactive value for input table
     constituencyName <- reactiveVal(NULL)
+    LADname <- reactiveVal(NULL)
 
     #############################################################
     #
@@ -163,7 +172,8 @@ server <- function(input, output, session) {
 
         dimensions_names <- names(object)
         constituencyName1 <- object[1,2]
-        LADname <- object$LAD24NM[1]
+        LAD_name <- object$LAD24NM[1]
+        LADname(LAD_name)
         # Store the data frame in the reactive value
         oa_unique(object)
         dimensions(dimensions_names)
@@ -337,18 +347,33 @@ if (!is.null(dimensions_val)) {
      # Download handler for result table data
     output$download_result <- downloadHandler(
         filename = function() {
+            # Define electoralEntityName here, accessible to both filename and content
+            electoralEntityName <- if (grepl("_LAD", input$fileDropdown)) {
+                paste0(LADname(), "_LAD")
+            } else {
+                paste0(constituencyName(), "_CON")
+            }
 
-            timestamp <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-            constName <- constituencyName()
-            paste0("result_", constName,input$weightingModel, "_" ,timestamp, ".csv")
-
+            # Generate the filename
+            paste0("result_", electoralEntityName, "_", input$weightingModel, "_", Sys.Date(), ".csv")
         },
         content = function(file) {
+            # Ensure electoralEntityName is defined in the content section as well
+            electoralEntityName <- if (grepl("_LAD", input$fileDropdown)) {
+                paste0(LADname(), "_LAD")
+            } else {
+                paste0(constituencyName(), "_CON")
+            }
+
+            # Write to the local file
             write.csv(oa_unique_values_data(), file, row.names = FALSE)
-            # Upload the file to Google Cloud Storage
-#            gcs_upload(oa_unique_values_data(), name = paste0("result_", constituencyName(),"_", input$partyChoice, format(Sys.time(), "%Y-%m-%d_%H-%M-%S")),
-            gcs_upload(oa_unique_values_data(), name = paste0("result_", constituencyName(),"_", input$weightingModel,"_", input$partyChoice),
-                        predefinedAcl='bucketLevel')
+
+            # Upload the file to Google Cloud Storage with a structured name
+            gcs_upload(
+                oa_unique_values_data(),
+                name = paste0("result_", electoralEntityName, "_", input$weightingModel, "_", input$partyChoice),
+                predefinedAcl = 'bucketLevel'
+            )
         }
     )
 }
