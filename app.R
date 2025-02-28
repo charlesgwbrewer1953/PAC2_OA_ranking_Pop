@@ -18,7 +18,7 @@
 # Modification to exclude OA population from
 # LATEST 27-2-25
 version_no <- "5.0.3"
-op_status <- "Operational"
+op_status <- "Development"
 
 library(shiny)
 library(rhandsontable)
