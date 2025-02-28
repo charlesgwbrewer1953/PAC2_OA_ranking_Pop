@@ -23,4 +23,12 @@ h1 {
   padding: 8px; /* Padding for cells */
 }
 
+/* Print-specific styles for full-width map */
+@media print {
+  #map {
+    width: 100vw !important; /* Full viewport width */
+    height: 100vh !important; /* Full viewport height */
+  }
+}
+
 /* Additional styles as needed */

@@ -1,9 +1,12 @@
 ##### Factor weighting and OA ranking - V4.3.0 Operational - GCS retrieval
+#####
+##### REVISED VERSION - 2025
 #
 #
 #  OA RANKING
 #
-#
+# GitHub https://github.com/charlesgwbrewer1953/PAC2_OA_ranking_Pop.git
+# GitHub PAC_OA_raqnking_Pop
 # oa_ranking1
 # Becoming generalised
 # oa_ranking2
@@ -11,7 +14,10 @@
 # Number of OAs added 2.3.5
 # # Revised GCS storage
 # DEV
-version_no <- "4.5.10"
+#
+# Modification to exclude OA population from
+# LATEST 27-2-25
+version_no <- "5.0.0"
 op_status <- "Operational"
 
 library(shiny)
@@ -210,13 +216,16 @@ server <- function(input, output, session) {
     #############################################################
 
 
-    output$parameter_table <- renderRHandsontable({
+output$parameter_table <- renderRHandsontable({
         dimensions_val <- dimensions()
 
 if (!is.null(dimensions_val)) {
+    # Exclude "Population" from the dimensions list
+    filtered_dimensions <- dimensions_val[!(dimensions_val %in% c("Population"))]
+
     # If dimensions_val is not NULL, create the dataframe
     df <- data.frame(
-        Title = dimensions_val[-(1:7)],
+        Title = filtered_dimensions[-(1:7)],
         Weight = 0,
         Q1 = 0,
         Q2 = 0,
@@ -246,65 +255,67 @@ if (!is.null(dimensions_val)) {
     # Define a reactive expression to update oa_unique_values when the 'Calculate' button is clicked
     observeEvent(input$calculate, {
 
-        input_df <- hot_to_r(input$parameter_table)  # Manual value present
-        parameter_table_data(input_df)  # Store input table data
+      input_df <- hot_to_r(input$parameter_table)  # Retrieve input table data
+      parameter_table_data(input_df)  # Store input table data
 
-        oa_unique_values <- oa_unique()  # Initialize oa_unique_values with oa_unique
+      oa_unique_values <- oa_unique()  # Load data from reactive storage
 
-        # Loop over columns apart from 1 to 7 (id columns) in oa_unique_values
-        for (col_name in names(oa_unique_values)[-c(1, 7)]) {
-            # Get the corresponding row index in input_df for the column name
-            row_index <- match(col_name, input_df$Title)
+      # Ensure "Population" is included in the final dataset but not changed
+      population_column <- oa_unique_values$Population
 
-            # Loop through each row of oa_unique_values
-            for (i in 1:nrow(oa_unique_values)) {
-                # Get the content of the cell in oa_unique_values
-                cell_content <- oa_unique_values[[col_name]][i]
+      # Loop over columns apart from 1 to 7 (id columns) in oa_unique_values, excluding "Population"
+      for (col_name in names(oa_unique_values)[-c(1:7)]) {
+        if (col_name == "Population") next  # Skip Population column in calculations
 
-                # Check if the cell content is one of "Q1", "Q2", "Q3", or "Q4"
-                if (cell_content %in% c("Q1", "Q2", "Q3", "Q4")) {
-                    # Get the value from input_df corresponding to the cell content
-                    input_value <- input_df[row_index, cell_content]
+        row_index <- match(col_name, input_df$Title)
 
-                    # Assign input_value to oa_unique_values if it's not NA or NULL
-                    if (!is.na(input_value) && !is.null(input_value)) {
-                        oa_unique_values[[col_name]][i] <- input_value
-                    }
-                }
+        for (i in 1:nrow(oa_unique_values)) {
+          cell_content <- oa_unique_values[[col_name]][i]
+
+          if (cell_content %in% c("Q1", "Q2", "Q3", "Q4")) {
+            input_value <- input_df[row_index, cell_content]
+
+            if (!is.na(input_value) && !is.null(input_value)) {
+              oa_unique_values[[col_name]][i] <- input_value
             }
+          }
         }
+      }
 
 
-        # Convert table values to numeric
-        numeric_columns <- 8:ncol(oa_unique_values)
-        oa_unique_values <- oa_unique_values %>%
-            mutate_at(vars(numeric_columns), as.numeric)
-        # Define a function to convert Weight values to numeric and multiply with column values
-        calculate_weighted_sum <- function(col_values, weight) {
-            # Convert Weight to numeric
-            weight_numeric <- as.numeric(weight)
-            # Multiply each column value with the Weight
-            result <- round(col_values * weight_numeric, 0)
-            return(result)
-        }
+      # Convert table values to numeric, except for Population
+      numeric_columns <- setdiff(8:ncol(oa_unique_values), which(names(oa_unique_values) == "Population"))
+      oa_unique_values <- oa_unique_values %>%
+        mutate_at(vars(numeric_columns), as.numeric)
+
+      # Function to apply weighting but ignore Population
+      calculate_weighted_sum <- function(col_values, weight) {
+        weight_numeric <- as.numeric(weight)
+        result <- round(col_values * weight_numeric, 0)
+        return(result)
+      }
 
         # Iterate over each column in oa_unique_values
-        for (col_name in names(oa_unique_values)[-c(1: 7)]) {
-            # Get the corresponding Weight value from input_df
-            weight_value <- input_df[input_df$Title == col_name, "Weight"]
-            # Convert it to numeric
-            weight_numeric <- as.numeric(weight_value)
-            # Get the column values from oa_unique_values
-            col_values <- oa_unique_values[[col_name]]
-            # Calculate the weighted sum for the column
-            weighted_values <- calculate_weighted_sum(col_values, weight_numeric)
-            # Assign the weighted sum to the column in oa_unique_values
-            oa_unique_values[[col_name]] <- weighted_values
-        }
-        # Add sum of row values
+      # Iterate over each column, ignoring Population
+      for (col_name in names(oa_unique_values)[-c(1:7)]) {
+        if (col_name == "Population") next  # Skip Population column
 
-        oa_unique_values$Sum <- rowSums(oa_unique_values[, -(1:7)], na.rm = TRUE)
-        oa_unique_values <- oa_unique_values %>% arrange(desc(Sum))
+        weight_value <- input_df[input_df$Title == col_name, "Weight"]
+        weight_numeric <- as.numeric(weight_value)
+        col_values <- oa_unique_values[[col_name]]
+        weighted_values <- calculate_weighted_sum(col_values, weight_numeric)
+        oa_unique_values[[col_name]] <- weighted_values
+      }
+        # Add sum of row values
+      # Restore Population column unchanged
+      oa_unique_values$Population <- population_column
+      population_mean <- mean(population_column)
+      # Compute row-wise sum for ranking, excluding Population
+      sum_columns <- setdiff(names(oa_unique_values), c(names(oa_unique_values)[1:7], "Population"))
+      oa_unique_values$Sum <- rowSums(oa_unique_values[, sum_columns], na.rm = TRUE)
+      oa_unique_values$Pop_Weighted_Sum <- round((oa_unique_values$Sum * oa_unique_values$Population / population_mean),0)
+      # Sort results by Sum
+      oa_unique_values <- oa_unique_values %>% arrange(desc(Pop_Weighted_Sum))
         # Assign the result to reactive value
         oa_unique_values_data(oa_unique_values)
 
