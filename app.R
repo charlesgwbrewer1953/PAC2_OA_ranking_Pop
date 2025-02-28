@@ -65,15 +65,15 @@ ui <- fluidPage(
             br(),
             rHandsontableOutput("parameter_table"),
             br(),
-            selectInput("partyChoice", "Choose a party:", choices = c("CON", "LAB", "LIB", "REF", "NRF"), selected = "REF"),
+            selectInput("partyChoice", "Choose a party:", choices = c("CON", "LAB", "LIB", "REF", "NRF", "GRN"), selected = "REF"),
             br(),
-            textInput("weightingModel", "Weighting model (max 5 chars):", "", width = "100px"),
+            textInput("weightingModel", "Weighting model (max 8 chars):", "", width = "120px"),
             tags$script(HTML("
                 $(document).on('input', '#alphanumericInput', function() {
                     var value = $(this).val();
                     var alphanumericRegex = /^[a-z0-9]*$/i;
-                    if (!alphanumericRegex.test(value) || value.length > 5) {
-                        $(this).val(value.substring(0, 5).replace(/[^a-z0-9]/gi, ''));
+                    if (!alphanumericRegex.test(value) || value.length > 8) {
+                        $(this).val(value.substring(0, 8).replace(/[^a-z0-9]/gi, ''));
                     }
                 });
             ")),
