@@ -17,7 +17,7 @@
 #
 # Modification to exclude OA population from
 # LATEST 27-2-25
-version_no <- "5.0.0"
+version_no <- "5.0.3"
 op_status <- "Operational"
 
 library(shiny)
@@ -312,10 +312,10 @@ if (!is.null(dimensions_val)) {
       population_mean <- mean(population_column)
       # Compute row-wise sum for ranking, excluding Population
       sum_columns <- setdiff(names(oa_unique_values), c(names(oa_unique_values)[1:7], "Population"))
-      oa_unique_values$Sum <- rowSums(oa_unique_values[, sum_columns], na.rm = TRUE)
-      oa_unique_values$Pop_Weighted_Sum <- round((oa_unique_values$Sum * oa_unique_values$Population / population_mean),0)
+      oa_unique_values$raw_Sum <- rowSums(oa_unique_values[, sum_columns], na.rm = TRUE)
+      oa_unique_values$Sum <- round((oa_unique_values$raw_Sum * oa_unique_values$Population / population_mean),0)
       # Sort results by Sum
-      oa_unique_values <- oa_unique_values %>% arrange(desc(Pop_Weighted_Sum))
+      oa_unique_values <- oa_unique_values %>% arrange(desc(Sum))
         # Assign the result to reactive value
         oa_unique_values_data(oa_unique_values)
 
@@ -371,9 +371,9 @@ if (!is.null(dimensions_val)) {
         content = function(file) {
             # Ensure electoralEntityName is defined in the content section as well
             electoralEntityName <- if (grepl("_LAD", input$fileDropdown)) {
-                paste0(LADname(), "_LAD")
+                paste0(LADname(), "_LAD_P")
             } else {
-                paste0(constituencyName(), "_CON")
+                paste0(constituencyName(), "_CON_P")
             }
 
             # Write to the local file
