@@ -10,7 +10,7 @@
 # oa_ranking1
 # Becoming generalised
 # oa_ranking2
-# Sums calculated to azero dec plac 2.2.3
+# Sums calculated to zero dec plac 2.2.3
 # Number of OAs added 2.3.5
 # # Revised GCS storage
 # DEV
@@ -18,7 +18,7 @@
 # Modification to exclude OA population from
 # LATEST 27-2-25
 version_no <- "5.0.3"
-op_status <- "Development"
+op_status <- "Deployed"
 
 library(shiny)
 library(rhandsontable)
